@@ -1,0 +1,111 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+main
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Local env files
+.env
+
+# Go vendor dependency directory
+vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# IDE and editor specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# dotenv environment variables file
+.env
+.env.test
+
+# Compiled source
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Serverless directories
+.serverless/
+
+# MacOS specific files
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Icon must end with two \r
+Icon\r\r
+
+# The network file system stores
+.fseventsd
+.Spotlight-V100
+.Trashes
+
+# The temporary files created by text editors
+*~
+*#
+.#*
+
+# The temporary files created by Xcode
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# The temporary files created by the Finder
+.DS_Store
+.DS_Store?
+.Trashes
+
+# The temporary files created by operating system
+._*
+.Spotlight-V100
+.apdisk
