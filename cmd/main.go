@@ -43,8 +43,10 @@ func main() {
 
 	r := gin.New()
 	r.Use(gin.Recovery())
+	r.Use(middleware.StripTrailingSlash())
 	r.Use(middleware.Logger())
 	r.Use(middleware.CORS())
+	r.Use(middleware.ErrorHandler())
 
 	r.GET("/properties", propertyHandler.GetAllProperties)
 	r.GET("/properties/:id", propertyHandler.GetProperty)

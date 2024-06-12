@@ -47,3 +47,14 @@ func Logger() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func ErrorHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+		if len(c.Errors) > 0 {
+			for _, e := range c.Errors {
+				log.Printf("Error: %s", e.Error())
+			}
+		}
+	}
+}

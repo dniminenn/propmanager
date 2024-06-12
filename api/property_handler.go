@@ -34,6 +34,7 @@ func NewPropertyHandler(propertyService *service.PropertyService, s3Service *ser
 func (h *PropertyHandler) GetAllProperties(c *gin.Context) {
 	properties, err := h.propertyService.GetAllProperties()
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -55,12 +56,14 @@ func (h *PropertyHandler) GetAllProperties(c *gin.Context) {
 func (h *PropertyHandler) GetProperty(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	property, err := h.propertyService.GetProperty(uint(id))
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -83,11 +86,13 @@ func (h *PropertyHandler) GetProperty(c *gin.Context) {
 func (h *PropertyHandler) CreateProperty(c *gin.Context) {
 	var property model.Property
 	if err := c.BindJSON(&property); err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := h.propertyService.CreateProperty(&property); err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -111,12 +116,14 @@ func (h *PropertyHandler) CreateProperty(c *gin.Context) {
 func (h *PropertyHandler) UpdateProperty(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	var property model.Property
 	if err := c.BindJSON(&property); err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -124,6 +131,7 @@ func (h *PropertyHandler) UpdateProperty(c *gin.Context) {
 	property.ID = uint(id)
 
 	if err := h.propertyService.UpdateProperty(&property); err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -146,11 +154,13 @@ func (h *PropertyHandler) UpdateProperty(c *gin.Context) {
 func (h *PropertyHandler) DeleteProperty(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := h.propertyService.DeleteProperty(uint(id)); err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -174,18 +184,21 @@ func (h *PropertyHandler) DeleteProperty(c *gin.Context) {
 func (h *PropertyHandler) UploadImage(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	file, err := c.FormFile("file")
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	openedFile, err := file.Open()
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -193,6 +206,7 @@ func (h *PropertyHandler) UploadImage(c *gin.Context) {
 	fileBytes := make([]byte, file.Size)
 	_, err = openedFile.Read(fileBytes)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -200,12 +214,14 @@ func (h *PropertyHandler) UploadImage(c *gin.Context) {
 	fileName := fmt.Sprintf("%d-%s", id, file.Filename)
 	url, err := h.s3Service.UploadImage(c.Request.Context(), fileBytes, fileName)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	property, err := h.propertyService.GetProperty(uint(id))
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -213,6 +229,7 @@ func (h *PropertyHandler) UploadImage(c *gin.Context) {
 	property.Images = append(property.Images, model.Image{URL: url})
 
 	if err := h.propertyService.UpdateProperty(&property); err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -236,17 +253,20 @@ func (h *PropertyHandler) UploadImage(c *gin.Context) {
 func (h *PropertyHandler) DeleteImage(c *gin.Context) {
 	propertyID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	imageID, err := strconv.ParseUint(c.Param("image_id"), 10, 64)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := h.propertyService.DeleteImage(uint(propertyID), uint(imageID)); err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
