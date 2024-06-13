@@ -37,6 +37,9 @@ func main() {
 
 	propertyHandler := api.NewPropertyHandler(propertyService, s3Service)
 
+	statsService := service.NewStatsService()
+	statsHandler := api.NewStatsHandler(statsService)
+
 	authConfig := config.LoadAuthConfig()
 	authService := service.NewAuthService(&authConfig)
 	authHandler := api.NewAuthHandler(authService)
@@ -59,6 +62,7 @@ func main() {
 		authGroup.DELETE("/properties/:id", propertyHandler.DeleteProperty)
 		authGroup.POST("/properties/:id/images", propertyHandler.UploadImage)
 		authGroup.DELETE("/properties/:id/images/:image_id", propertyHandler.DeleteImage)
+		authGroup.GET("/stats", statsHandler.GetStats)
 	}
 
 	r.POST("/login", authHandler.Login)
