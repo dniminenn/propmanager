@@ -22,12 +22,6 @@ func stripTrailingSlash(value string) string {
 	return value
 }
 
-// other suggested middleware:
-// - CORS
-// - Rate limiting
-// - Logging
-// - Error handling
-
 func CORS() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")

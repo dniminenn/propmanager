@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 
@@ -21,6 +22,8 @@ type S3Service struct {
 }
 
 func NewS3Service(cfg *config.Config) *S3Service {
+	log.Printf("Initializing S3 Service with Endpoint: %s, Region: %s, Bucket: %s", cfg.S3Endpoint, cfg.S3Region, cfg.S3Bucket)
+	log.Printf("AWS Access Key: %s, Secret Key: %s", cfg.S3AccessKey, cfg.S3SecretKey)
 	return &S3Service{cfg: cfg}
 }
 
@@ -36,11 +39,15 @@ func generateRandomPrefix(n int) (string, error) {
 
 func (s *S3Service) UploadImage(ctx context.Context, file []byte, fileName string) (string, error) {
 	sess, err := session.NewSession(&aws.Config{
-		Endpoint: aws.String(s.cfg.S3Endpoint),
-		Region:   aws.String(s.cfg.S3Region),
-	}, nil)
+		Credentials:      credentials.NewStaticCredentials(s.cfg.S3AccessKey, s.cfg.S3SecretKey, ""),
+		Endpoint:         aws.String(s.cfg.S3Endpoint),
+		Region:           aws.String(s.cfg.S3Region),
+		DisableSSL:       aws.Bool(false),
+		S3ForcePathStyle: aws.Bool(true),
+		LogLevel:         aws.LogLevel(aws.LogOff),
+	})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("AWS Session error: %v", err)
 		return "", err
 	}
 
@@ -53,6 +60,7 @@ func (s *S3Service) UploadImage(ctx context.Context, file []byte, fileName strin
 
 	// Append the random prefix to the original filename.
 	modifiedFileName := fmt.Sprintf("%s-%s", prefix, fileName)
+	log.Printf("Uploading file with modified name: %s", modifiedFileName)
 
 	_, err = s3.New(sess).PutObjectWithContext(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(s.cfg.S3Bucket),
@@ -65,9 +73,9 @@ func (s *S3Service) UploadImage(ctx context.Context, file []byte, fileName strin
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case s3.ErrCodeBucketAlreadyExists:
-				log.Println("Bucket name already in use!")
+				log.Printf("Bucket name already in use: %v", aerr.Message())
 			default:
-				log.Printf("Unknown S3 error: %v", aerr)
+				log.Printf("Unknown S3 error: %v", aerr.Message())
 			}
 		} else {
 			log.Printf("Non-S3 error: %v", err)
@@ -75,27 +83,39 @@ func (s *S3Service) UploadImage(ctx context.Context, file []byte, fileName strin
 		return "", err
 	}
 
+	log.Printf("Successfully uploaded: %s", modifiedFileName)
 	// Return the full URL including the modified file name.
 	return fmt.Sprintf("%s/%s", s.cfg.S3Endpoint, modifiedFileName), nil
 }
 
 func (s *S3Service) DeleteImage(imageUrl string) error {
 	sess, err := session.NewSession(&aws.Config{
-		Endpoint: aws.String(s.cfg.S3Endpoint),
-		Region:   aws.String(s.cfg.S3Region),
-	}, nil)
+		Credentials:      credentials.NewStaticCredentials(s.cfg.S3AccessKey, s.cfg.S3SecretKey, ""),
+		Endpoint:         aws.String(s.cfg.S3Endpoint),
+		Region:           aws.String(s.cfg.S3Region),
+		DisableSSL:       aws.Bool(false),
+		S3ForcePathStyle: aws.Bool(true),
+		LogLevel:         aws.LogLevel(aws.LogOff),
+	})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("AWS Session error: %v", err)
 		return err
 	}
 
 	// Extract the key from imageUrl
 	urlParts := strings.Split(imageUrl, "/")
 	key := urlParts[len(urlParts)-1]
+	log.Printf("Deleting image with key: %s", key)
 
 	_, err = s3.New(sess).DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(s.cfg.S3Bucket),
 		Key:    aws.String(key),
 	})
-	return err
+	if err != nil {
+		log.Printf("Error deleting image: %v", err)
+		return err
+	}
+
+	log.Printf("Successfully deleted image: %s", key)
+	return nil
 }
