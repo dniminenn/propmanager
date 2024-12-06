@@ -22,9 +22,11 @@ import (
 var swaggerJson string
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
+
 	cfg := config.LoadConfig()
 
-	db := db.ConnectDB(cfg)
+	db := db.ConnectDB()
 
 	err := db.AutoMigrate(&model.Property{}, &model.Image{})
 	if err != nil {
